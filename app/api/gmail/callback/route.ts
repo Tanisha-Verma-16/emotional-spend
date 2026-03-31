@@ -5,25 +5,49 @@ import { createClient } from '@/lib/supabase/server'
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const code = searchParams.get('code')
+  const error = searchParams.get('error')
 
-  if (!code) return NextResponse.redirect('/journal?error=gmail_auth_failed')
+  // User denied access
+  if (error) {
+    return NextResponse.redirect(
+      new URL('/journal?gmail=denied', req.url)
+    )
+  }
 
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.redirect('/login')
+  if (!code) {
+    return NextResponse.redirect(
+      new URL('/journal?gmail=error', req.url)
+    )
+  }
 
-  const oauth2Client = getOAuthClient()
-  const { tokens } = await oauth2Client.getToken(code)
+  try {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  await supabase.from('gmail_tokens').upsert({
-    user_id: user.id,
-    access_token: tokens.access_token!,
-    refresh_token: tokens.refresh_token ?? null,
-    expires_at: tokens.expiry_date
-      ? new Date(tokens.expiry_date).toISOString()
-      : null,
-    updated_at: new Date().toISOString(),
-  })
+    if (!user) {
+      return NextResponse.redirect(new URL('/login', req.url))
+    }
 
-  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/journal?gmail=connected`)
+    const oauth2Client = getOAuthClient()
+    const { tokens } = await oauth2Client.getToken(code)
+
+    await supabase.from('gmail_tokens').upsert({
+      user_id: user.id,
+      access_token: tokens.access_token!,
+      refresh_token: tokens.refresh_token ?? null,
+      expires_at: tokens.expiry_date
+        ? new Date(tokens.expiry_date).toISOString()
+        : null,
+      updated_at: new Date().toISOString(),
+    })
+
+    return NextResponse.redirect(
+      new URL('/journal?gmail=connected', req.url)
+    )
+  } catch (err) {
+    console.error('Gmail OAuth callback error:', err)
+    return NextResponse.redirect(
+      new URL('/journal?gmail=error', req.url)
+    )
+  }
 }
