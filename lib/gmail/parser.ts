@@ -14,6 +14,7 @@ const RECEIPT_QUERIES = [
   'subject:"order confirmed"',
   'subject:"your receipt"',
   'subject:"invoice"',
+  'subject:"order of 1000 Piece Puzzle"',
   'subject:"order confirmation"',
 ]
 
