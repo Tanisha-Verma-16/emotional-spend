@@ -14,6 +14,7 @@ const RECEIPT_QUERIES = [
   'subject:"order confirmed"',
   'subject:"your receipt"',
   'subject:"invoice"',
+  'subject:"order confirmation"',
 ]
 
 export interface RawEmailData {
