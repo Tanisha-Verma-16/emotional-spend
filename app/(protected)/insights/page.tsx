@@ -91,6 +91,24 @@ export default async function InsightsPage() {
           )}
         </div>
 
+        {/* Therapy Prep */}
+        <a href="/therapy-prep"
+          className="block bg-gradient-to-r from-rose-50 to-amber-50 rounded-2xl 
+                    border border-rose-100 shadow-sm p-5 hover:shadow-md transition-all
+                    hover:-translate-y-0.5 group">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-medium text-rose-400 uppercase tracking-wider mb-1">
+                Therapy Prep
+              </h2>
+              <p className="text-sm text-stone-500">
+                Answer a few guided questions → get a shareable note for your therapist
+              </p>
+            </div>
+            <span className="text-rose-300 group-hover:translate-x-1 transition-transform text-lg">→</span>
+          </div>
+        </a>
+
       </div>
     </div>
   )
