@@ -132,16 +132,16 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
     //                   flex flex-col max-h-[90vh]">
 
     // Change the outer wrapper div to:
-<div
-  className="fixed inset-0 z-[9999] flex items-center justify-center p-6"
->
-  {/* Backdrop */}
-  <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+// OUTER wrapper — change to this:
+<div className="fixed inset-0 z-[9999] overflow-y-auto">
+  <div className="flex min-h-full items-center justify-center p-4">
 
-  {/* Modal — fixed height so it never overflows */}
-  <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md z-10
-                  flex flex-col"
-    style={{ maxHeight: 'min(600px, 85vh)' }} >
+    {/* Backdrop */}
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+
+    {/* Modal */}
+    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md z-10
+                    flex flex-col my-auto">
 
         {/* Nudge banner */}
         {showNudge && (
@@ -436,5 +436,6 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
         </div>
       </div>
     </div>
+  </div>
   )
 }
