@@ -8,6 +8,7 @@
 // }
 
 'use client'
+import { div } from 'framer-motion/m'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
@@ -202,84 +203,90 @@ export default function LandingPage() {
           </div>
 
           {/* Right — animated illustration */}
-          <div style={{ position: 'relative', height: 480, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {/* Right — animated illustration */}
+          {/* Right — animated illustration */}
+<div style={{ position: 'relative', height: 520, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 
-            {/* Central figure */}
-            <div style={{ position: 'relative', zIndex: 2 }}>
-              <svg width="200" height="260" viewBox="0 0 200 260" fill="none" style={{ animation: 'float 5s ease-in-out infinite' }}>
-                {/* Person sitting */}
-                <circle cx="100" cy="60" r="32" fill="#dbeafe"/>
-                <circle cx="100" cy="58" r="24" fill="#93c5fd"/>
-                {/* Face */}
-                <circle cx="92" cy="55" r="3" fill="#1e40af"/>
-                <circle cx="108" cy="55" r="3" fill="#1e40af"/>
-                <path d="M93 65 Q100 70 107 65" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" fill="none"/>
-                {/* Body */}
-                <rect x="68" y="90" width="64" height="80" rx="16" fill="#bfdbfe"/>
-                {/* Arms */}
-                <rect x="36" y="95" width="36" height="16" rx="8" fill="#93c5fd"/>
-                <rect x="128" y="95" width="36" height="16" rx="8" fill="#93c5fd"/>
-                {/* Legs */}
-                <rect x="74" y="164" width="22" height="60" rx="11" fill="#93c5fd"/>
-                <rect x="104" y="164" width="22" height="60" rx="11" fill="#93c5fd"/>
-                {/* Journal in hands */}
-                <rect x="55" y="108" width="90" height="56" rx="8" fill="white" stroke="#e2e8f0" strokeWidth="1.5"/>
-                <line x1="70" y1="124" x2="130" y2="124" stroke="#dbeafe" strokeWidth="2"/>
-                <line x1="70" y1="134" x2="120" y2="134" stroke="#dbeafe" strokeWidth="2"/>
-                <line x1="70" y1="144" x2="110" y2="144" stroke="#dbeafe" strokeWidth="2"/>
-                {/* Pen */}
-                <rect x="126" y="118" width="8" height="28" rx="4" fill="#3b82f6" transform="rotate(15 130 132)"/>
-              </svg>
-            </div>
+  {/* Person image — furthest back */}
+  <img
+    src="https://i.pinimg.com/1200x/f3/c5/a7/f3c5a772705cb80fbe152aea96cc2514.jpg"
+    alt="Person journaling with laptop"
+    style={{
+      width: 300,
+      height: 300,
+      objectFit: 'contain',
+      position: 'relative',
+      zIndex: 1,
+      animation: 'float 5.5s ease-in-out infinite',
+    }}
+  />
 
-            {/* Floating card: journal entry */}
-            <div className="floating-card" style={{ top: 30, left: -20, width: 180, animationDelay: '0s', animationDuration: '4s' }}>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>Today, 2:34 PM</div>
-              <div style={{ fontSize: 13, color: '#334155', lineHeight: 1.4, marginBottom: 10 }}>"Feeling overwhelmed after back-to-back meetings..."</div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <span className="tag" style={{ background: '#fef3c7', color: '#92400e' }}>stress</span>
-                <span className="tag" style={{ background: '#fee2e2', color: '#991b1b' }}>overwhelmed</span>
-              </div>
-            </div>
+  {/* Blobs — above image, below cards */}
+  <div style={{ position: 'absolute', width: 110, height: 110, borderRadius: '50%', background: '#ede9fe', top: 40, left: '42%', zIndex: 2, animation: 'pulse 4s ease infinite' }} />
+  <div style={{ position: 'absolute', width: 70, height: 70, borderRadius: '50%', background: '#dbeafe', bottom: 40, right: '36%', zIndex: 2, animation: 'pulse 5s ease 1.5s infinite' }} />
+  <div style={{ position: 'absolute', width: 50, height: 50, borderRadius: '50%', background: '#fce7f3', bottom: 80, left: '28%', zIndex: 2, animation: 'pulse 6s ease 0.8s infinite' }} />
 
-            {/* Floating card: spending */}
-            <div className="floating-card" style={{ top: 40, right: -30, width: 170, animationDelay: '1.5s', animationDuration: '5s' }}>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>Receipt detected</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="3" fill="#fed7aa"/><path d="M6 9h6M6 12h4" stroke="#ea580c" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: '#0f172a' }}>Swiggy</div>
-                  <div style={{ fontSize: 12, color: '#64748b' }}>Food delivery</div>
-                </div>
-              </div>
-              <div style={{ fontSize: 18, fontWeight: 600, color: '#0f172a' }}>₹680</div>
-            </div>
+  {/* Card 1 — Journal entry, top left */}
+  <div className="floating-card" style={{ top: 24, left: 0, width: 196, zIndex: 10, animationDelay: '0s', animationDuration: '4s' }}>
+    <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 7 }}>Today, 2:34 PM</div>
+    <div style={{ fontSize: 12.5, color: '#334155', lineHeight: 1.45, marginBottom: 10 }}>
+      "Feeling overwhelmed after back-to-back meetings..."
+    </div>
+    <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+      <span className="tag" style={{ background: '#fef3c7', color: '#92400e' }}>stress</span>
+      <span className="tag" style={{ background: '#fee2e2', color: '#991b1b' }}>overwhelmed</span>
+    </div>
+  </div>
 
-            {/* Floating card: insight */}
-            <div className="floating-card" style={{ bottom: 40, left: 0, width: 200, animationDelay: '2s', animationDuration: '6s' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" fill="#ede9fe"/><path d="M7 4v3l2 2" stroke="#7c3aed" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                <span style={{ fontSize: 11, color: '#7c3aed', fontWeight: 500 }}>Pattern detected</span>
-              </div>
-              <div style={{ fontSize: 12, color: '#334155', lineHeight: 1.5 }}>High stress entries often precede food delivery orders within 6h</div>
-              <div style={{ marginTop: 8, background: '#ede9fe', height: 4, borderRadius: 4 }}>
-                <div style={{ width: '75%', height: '100%', background: '#7c3aed', borderRadius: 4 }} />
-              </div>
-              <div style={{ fontSize: 11, color: '#7c3aed', marginTop: 4 }}>75% correlation</div>
-            </div>
+  {/* Card 2 — Spending, top right */}
+  <div className="floating-card" style={{ top: 16, right: 0, width: 176, zIndex: 10, animationDelay: '1.2s', animationDuration: '5s' }}>
+    <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 7 }}>Receipt detected</div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+      <div style={{ width: 34, height: 34, borderRadius: 8, background: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <rect x="2" y="2" width="14" height="14" rx="3" fill="#fed7aa" />
+          <path d="M6 9h6M6 12h4" stroke="#ea580c" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </div>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: '#0f172a' }}>Swiggy</div>
+        <div style={{ fontSize: 12, color: '#64748b' }}>Food delivery</div>
+      </div>
+    </div>
+    <div style={{ fontSize: 20, fontWeight: 600, color: '#0f172a' }}>₹680</div>
+  </div>
 
-            {/* Floating card: therapy prep */}
-            <div className="floating-card" style={{ bottom: 20, right: -20, width: 160, animationDelay: '1s', animationDuration: '4.5s' }}>
-              <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>Therapy prep ✓</div>
-              <div style={{ fontSize: 12, color: '#334155', lineHeight: 1.5 }}>"3 stress triggers this week, 2 emotional purchases"</div>
-              <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" fill="#d1fae5"/><path d="M4 7l2 2 4-4" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                <span style={{ fontSize: 11, color: '#059669' }}>Ready to share</span>
-              </div>
-            </div>
-          </div>
+  {/* Card 3 — Pattern, bottom left */}
+  <div className="floating-card" style={{ bottom: 36, left: 4, width: 212, zIndex: 10, animationDelay: '2s', animationDuration: '6s' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+      <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#7c3aed', display: 'inline-block', animation: 'blink 2s ease-in-out infinite', flexShrink: 0 }} />
+      <span style={{ fontSize: 11, color: '#7c3aed', fontWeight: 500 }}>Pattern detected</span>
+    </div>
+    <div style={{ fontSize: 12.5, color: '#334155', lineHeight: 1.45 }}>
+      High stress entries often precede food delivery orders within 6h
+    </div>
+    <div style={{ background: '#ede9fe', borderRadius: 4, height: 4, marginTop: 9 }}>
+      <div style={{ width: '75%', height: '100%', background: '#7c3aed', borderRadius: 4 }} />
+    </div>
+    <div style={{ fontSize: 11, color: '#7c3aed', marginTop: 5 }}>75% correlation</div>
+  </div>
+
+  {/* Card 4 — Therapy prep, bottom right */}
+  <div className="floating-card" style={{ bottom: 24, right: 2, width: 172, zIndex: 10, animationDelay: '0.8s', animationDuration: '4.5s' }}>
+    <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 7 }}>Therapy prep ✓</div>
+    <div style={{ fontSize: 12.5, color: '#334155', lineHeight: 1.45 }}>
+      "3 stress triggers this week, 2 emotional purchases"
+    </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10 }}>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="6" fill="#d1fae5" />
+        <path d="M4 7l2 2 4-4" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span style={{ fontSize: 11, color: '#059669' }}>Ready to share</span>
+    </div>
+  </div>
+
+</div>
         </div>
       </section>
 
