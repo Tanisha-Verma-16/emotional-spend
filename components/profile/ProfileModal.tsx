@@ -117,19 +117,31 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
 
   return (
     // Full screen overlay — fixed, high z-index
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
-        onClick={onClose}
-      />
+    // <div
+    //   className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+    //   style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+    // >
+    //   {/* Backdrop */}
+    //   <div
+    //     className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+    //     onClick={onClose}
+    //   />
 
-      {/* Modal — sits above backdrop */}
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md z-10
-                      flex flex-col max-h-[90vh]">
+    //   {/* Modal — sits above backdrop */}
+    //   <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md z-10
+    //                   flex flex-col max-h-[90vh]">
+
+    // Change the outer wrapper div to:
+<div
+  className="fixed inset-0 z-[9999] flex items-center justify-center p-6"
+>
+  {/* Backdrop */}
+  <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
+
+  {/* Modal — fixed height so it never overflows */}
+  <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md z-10
+                  flex flex-col"
+    style={{ maxHeight: 'min(600px, 85vh)' }} >
 
         {/* Nudge banner */}
         {showNudge && (
