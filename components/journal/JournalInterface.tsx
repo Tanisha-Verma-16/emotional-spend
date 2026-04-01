@@ -178,6 +178,7 @@
 'use client'
 import { useState } from 'react'
 import { format } from 'date-fns'
+import JournalInsights from './JournalInsights'
 
 interface Entry {
   id: string
@@ -242,6 +243,12 @@ export default function JournalInterface({ initialEntries, gmailConnected }: Pro
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-8 space-y-4">
+
+       {/* Add this line — buttons row */}
+        <div className="flex justify-end">
+          <JournalInsights entries={entries} />
+        </div>
+      
       {/* Gmail sync status */}
       {status && (
         <p className="text-xs text-center text-slate-400">{status}</p>
