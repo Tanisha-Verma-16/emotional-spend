@@ -13,7 +13,7 @@ interface Profile {
 
 interface Props {
   onClose: () => void
-  showNudge?: boolean  // silent nudge mode (first time)
+  showNudge?: boolean
 }
 
 export default function ProfileModal({ onClose, showNudge = false }: Props) {
@@ -23,11 +23,16 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
-  const [tab, setTab] = useState<'profile' | 'danger'>('profile')
-  const [deleteConfirm, setDeleteConfirm] = useState(false)
-  const [saved, setSaved] = useState(false)
+  const [tab, setTab] = useState<'profile' | 'account'>('profile')
+
+  // Delete flow
+  const [deleteStep, setDeleteStep] = useState<'idle' | 'confirm' | 'password'>('idle')
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deleteError, setDeleteError] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetch('/api/profile')
@@ -50,7 +55,6 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
     setSaving(true)
     let avatarUrl = profile.avatar_url
 
-    // Upload avatar if changed
     if (avatarFile) {
       const fd = new FormData()
       fd.append('avatar', avatarFile)
@@ -80,7 +84,28 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
     router.push('/login')
   }
 
-  const handleDelete = async () => {
+  const handleDeleteConfirmed = async () => {
+    if (!deletePassword.trim()) {
+      setDeleteError('Please enter your password')
+      return
+    }
+    setDeleting(true)
+    setDeleteError('')
+
+    // Re-authenticate first
+    const supabase = createClient()
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password: deletePassword,
+    })
+
+    if (authError) {
+      setDeleteError('Incorrect password. Please try again.')
+      setDeleting(false)
+      return
+    }
+
+    // Password correct — delete everything
     await fetch('/api/profile', { method: 'DELETE' })
     router.push('/login')
   }
@@ -91,19 +116,25 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
     : email?.[0]?.toUpperCase() || '?'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-
+    // Full screen overlay — fixed, high z-index
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+    >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" />
+      <div
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden
-                      animate-in slide-in-from-bottom-4 duration-300">
+      {/* Modal — sits above backdrop */}
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md z-10
+                      flex flex-col max-h-[90vh]">
 
         {/* Nudge banner */}
         {showNudge && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-3 border-b border-blue-100">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-5 py-2.5
+                          border-b border-blue-100 rounded-t-3xl flex-shrink-0">
             <p className="text-xs text-blue-500 text-center">
               ✦ Add your details so insights feel more personal
             </p>
@@ -111,66 +142,89 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
         )}
 
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 flex items-start justify-between">
+        <div className="px-6 pt-5 pb-3 flex items-start justify-between flex-shrink-0">
           <div>
             <h2 className="text-lg font-light text-slate-700">Your Profile</h2>
             <p className="text-xs text-slate-400 mt-0.5">{email}</p>
           </div>
-          <button onClick={onClose}
-            className="text-slate-300 hover:text-slate-500 transition-colors text-xl leading-none">
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 
+                       transition-colors flex items-center justify-center text-slate-500 text-sm"
+          >
             ×
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-100 px-6">
-          {(['profile', 'danger'] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`text-xs pb-3 mr-6 border-b-2 transition-colors capitalize ${
-                tab === t
-                  ? 'border-blue-400 text-blue-500'
-                  : 'border-transparent text-slate-400 hover:text-slate-600'
-              }`}>
-              {t === 'danger' ? 'Account' : 'Profile'}
-            </button>
-          ))}
+        <div className="flex border-b border-slate-100 px-6 flex-shrink-0">
+          <button
+            onClick={() => setTab('profile')}
+            className={`text-xs pb-3 mr-6 border-b-2 transition-colors ${
+              tab === 'profile'
+                ? 'border-blue-400 text-blue-500'
+                : 'border-transparent text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            Profile
+          </button>
+          <button
+            onClick={() => setTab('account')}
+            className={`text-xs pb-3 mr-6 border-b-2 transition-colors ${
+              tab === 'account'
+                ? 'border-blue-400 text-blue-500'
+                : 'border-transparent text-slate-400 hover:text-slate-600'
+            }`}
+          >
+            Account
+          </button>
         </div>
 
-        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
+        {/* Scrollable content */}
+        <div className="overflow-y-auto flex-1 p-6 space-y-4">
           {loading ? (
-            <div className="flex justify-center py-8">
-              <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-400 rounded-full animate-spin" />
+            <div className="flex justify-center py-10">
+              <div className="w-6 h-6 border-2 border-blue-200 border-t-blue-400
+                              rounded-full animate-spin" />
             </div>
+
           ) : tab === 'profile' ? (
             <>
               {/* Avatar */}
               <div className="flex items-center gap-4">
-                <button onClick={() => fileRef.current?.click()}
-                  className="relative group flex-shrink-0">
-                  <div className="w-16 h-16 rounded-full overflow-hidden bg-gradient-to-br 
-                                  from-blue-100 to-indigo-100 flex items-center justify-center">
-                    {avatar
-                      ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
-                      : <span className="text-xl font-light text-blue-400">{initials}</span>
-                    }
-                  </div>
-                  <div className="absolute inset-0 rounded-full bg-black/20 opacity-0 
-                                  group-hover:opacity-100 transition-opacity flex items-center 
-                                  justify-center">
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  className="relative group w-16 h-16 rounded-full flex-shrink-0 overflow-hidden
+                             bg-gradient-to-br from-blue-100 to-indigo-100
+                             flex items-center justify-center"
+                >
+                  {avatar
+                    ? <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
+                    : <span className="text-xl font-light text-blue-400">{initials}</span>
+                  }
+                  <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100
+                                  transition-opacity flex items-center justify-center">
                     <span className="text-white text-xs">Edit</span>
                   </div>
                 </button>
                 <div>
                   <p className="text-sm text-slate-600 font-light">
-                    {profile.name || 'No name set'}
+                    {profile.name || 'No name yet'}
                   </p>
-                  <button onClick={() => fileRef.current?.click()}
-                    className="text-xs text-blue-400 hover:text-blue-500 mt-0.5">
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    className="text-xs text-blue-400 hover:text-blue-500 mt-0.5"
+                  >
                     Change photo
                   </button>
                 </div>
-                <input ref={fileRef} type="file" accept="image/*"
-                  onChange={handleAvatarChange} className="hidden" />
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarChange}
+                  className="hidden"
+                />
               </div>
 
               {/* Name */}
@@ -181,22 +235,23 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
                   value={profile.name || ''}
                   onChange={e => setProfile(p => ({ ...p, name: e.target.value }))}
                   placeholder="Your name"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600
                              text-sm focus:outline-none focus:border-blue-300 transition-colors"
                 />
               </div>
 
-              {/* Age + Gender row */}
+              {/* Age + Gender */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs text-slate-400 block mb-1.5">Age</label>
                   <input
                     type="number"
                     value={profile.age || ''}
-                    onChange={e => setProfile(p => ({ ...p, age: parseInt(e.target.value) }))}
+                    onChange={e => setProfile(p => ({ ...p, age: parseInt(e.target.value) || undefined }))}
                     placeholder="e.g. 24"
-                    min={10} max={100}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 
+                    min={10}
+                    max={100}
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600
                                text-sm focus:outline-none focus:border-blue-300 transition-colors"
                   />
                 </div>
@@ -205,7 +260,7 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
                   <select
                     value={profile.gender || ''}
                     onChange={e => setProfile(p => ({ ...p, gender: e.target.value }))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600
                                text-sm focus:outline-none focus:border-blue-300 transition-colors bg-white"
                   >
                     <option value="">Prefer not to say</option>
@@ -220,14 +275,15 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
               {/* Bio */}
               <div>
                 <label className="text-xs text-slate-400 block mb-1.5">
-                  About you <span className="text-slate-300">(helps personalise insights)</span>
+                  About you{' '}
+                  <span className="text-slate-300">(helps personalise insights)</span>
                 </label>
                 <textarea
                   value={profile.bio || ''}
                   onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
                   placeholder="e.g. Student, dealing with work stress, trying to spend mindfully..."
                   rows={3}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600
                              text-sm focus:outline-none focus:border-blue-300 transition-colors resize-none"
                 />
               </div>
@@ -236,60 +292,132 @@ export default function ProfileModal({ onClose, showNudge = false }: Props) {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full py-3 bg-blue-400 hover:bg-blue-500 text-white rounded-xl 
+                className="w-full py-3 bg-blue-400 hover:bg-blue-500 text-white rounded-xl
                            transition-all text-sm font-light disabled:opacity-50"
               >
                 {saved ? '✓ Saved!' : saving ? 'Saving...' : 'Save profile'}
               </button>
             </>
+
           ) : (
-            /* Account tab */
-            <div className="space-y-4">
-              {/* Logout */}
+            /* ── ACCOUNT TAB ── */
+            <div className="space-y-3">
+
+              {/* User info summary */}
+              <div className="bg-slate-50 rounded-xl p-4 space-y-1">
+                <p className="text-sm text-slate-600">{profile.name || 'No name set'}</p>
+                <p className="text-xs text-slate-400">{email}</p>
+                {profile.bio && (
+                  <p className="text-xs text-slate-400 pt-1 border-t border-slate-100 mt-2">
+                    {profile.bio}
+                  </p>
+                )}
+              </div>
+
+              {/* Sign out */}
               <button
                 onClick={handleLogout}
-                className="w-full py-3 bg-slate-50 hover:bg-slate-100 text-slate-500 
-                           rounded-xl transition-colors text-sm border border-slate-200"
+                className="w-full py-3 bg-white border border-slate-200 text-slate-500
+                           hover:bg-slate-50 rounded-xl transition-colors text-sm"
               >
                 Sign out
               </button>
 
               {/* Delete account */}
-              <div className="border border-red-100 rounded-xl p-4 space-y-3">
-                <p className="text-xs text-red-400 font-medium">Danger zone</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Permanently deletes your account, all journal entries, transactions, 
-                  and reports. This cannot be undone.
-                </p>
-                {!deleteConfirm ? (
-                  <button
-                    onClick={() => setDeleteConfirm(true)}
-                    className="w-full py-2.5 border border-red-200 text-red-400 rounded-xl 
-                               hover:bg-red-50 transition-colors text-sm"
-                  >
-                    Delete my account
-                  </button>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-xs text-red-500 text-center font-medium">Are you sure?</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        onClick={() => setDeleteConfirm(false)}
-                        className="py-2.5 bg-slate-50 text-slate-500 rounded-xl text-xs 
-                                   hover:bg-slate-100 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={handleDelete}
-                        className="py-2.5 bg-red-400 text-white rounded-xl text-xs 
-                                   hover:bg-red-500 transition-colors"
-                      >
-                        Yes, delete everything
-                      </button>
+              <div className="border border-red-100 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 bg-red-50">
+                  <p className="text-xs font-medium text-red-400">Delete account</p>
+                  <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                    Permanently deletes all your journal entries, transactions, reports,
+                    and profile. This cannot be undone.
+                  </p>
+                </div>
+
+                <div className="p-4 space-y-3">
+                  {deleteStep === 'idle' && (
+                    <button
+                      onClick={() => setDeleteStep('confirm')}
+                      className="w-full py-2.5 border border-red-200 text-red-400 rounded-xl
+                                 hover:bg-red-50 transition-colors text-sm"
+                    >
+                      Delete my account
+                    </button>
+                  )}
+
+                  {deleteStep === 'confirm' && (
+                    <div className="space-y-3">
+                      <p className="text-xs text-slate-500 text-center">
+                        Are you sure? This will permanently delete:
+                      </p>
+                      <ul className="text-xs text-slate-400 space-y-1 pl-3">
+                        <li>• All journal entries</li>
+                        <li>• All transactions & receipts</li>
+                        <li>• All weekly reports</li>
+                        <li>• Your profile and account</li>
+                      </ul>
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <button
+                          onClick={() => setDeleteStep('idle')}
+                          className="py-2.5 bg-slate-50 text-slate-500 rounded-xl text-xs
+                                     hover:bg-slate-100 transition-colors border border-slate-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => setDeleteStep('password')}
+                          className="py-2.5 bg-red-400 text-white rounded-xl text-xs
+                                     hover:bg-red-500 transition-colors"
+                        >
+                          Yes, continue
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+
+                  {deleteStep === 'password' && (
+                    <div className="space-y-3">
+                      <p className="text-xs text-slate-500 text-center">
+                        Enter your password to confirm
+                      </p>
+                      <input
+                        type="password"
+                        value={deletePassword}
+                        onChange={e => {
+                          setDeletePassword(e.target.value)
+                          setDeleteError('')
+                        }}
+                        placeholder="Your password"
+                        autoFocus
+                        className="w-full px-4 py-2.5 rounded-xl border border-red-200 text-slate-600
+                                   text-sm focus:outline-none focus:border-red-300 transition-colors"
+                      />
+                      {deleteError && (
+                        <p className="text-xs text-red-400 text-center">{deleteError}</p>
+                      )}
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => {
+                            setDeleteStep('idle')
+                            setDeletePassword('')
+                            setDeleteError('')
+                          }}
+                          className="py-2.5 bg-slate-50 text-slate-500 rounded-xl text-xs
+                                     hover:bg-slate-100 transition-colors border border-slate-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleDeleteConfirmed}
+                          disabled={deleting}
+                          className="py-2.5 bg-red-500 text-white rounded-xl text-xs
+                                     hover:bg-red-600 transition-colors disabled:opacity-50"
+                        >
+                          {deleting ? 'Deleting...' : 'Delete everything'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
