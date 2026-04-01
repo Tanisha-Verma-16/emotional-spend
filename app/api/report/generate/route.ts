@@ -14,17 +14,21 @@ export async function POST(req: NextRequest) {
   const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 })
 
   // Fetch week data
-  const [entriesRes, txnsRes, correlationsRes] = await Promise.all([
-    supabase.from('journal_entries').select('*').eq('user_id', user.id)
-      .gte('created_at', weekStart.toISOString())
-      .lte('created_at', weekEnd.toISOString()),
-    supabase.from('transactions').select('*').eq('user_id', user.id)
-      .gte('transaction_at', weekStart.toISOString())
-      .lte('transaction_at', weekEnd.toISOString()),
-    supabase.from('correlations').select('*').eq('user_id', user.id)
-      .gte('created_at', weekStart.toISOString())
-      .lte('created_at', weekEnd.toISOString()),
-  ])
+// Add this to the existing Promise.all in the route
+const [entriesRes, txnsRes, correlationsRes, profileRes] = await Promise.all([
+  supabase.from('journal_entries').select('*').eq('user_id', user.id)
+    .gte('created_at', weekStart.toISOString())
+    .lte('created_at', weekEnd.toISOString()),
+  supabase.from('transactions').select('*').eq('user_id', user.id)
+    .gte('transaction_at', weekStart.toISOString())
+    .lte('transaction_at', weekEnd.toISOString()),
+  supabase.from('correlations').select('*').eq('user_id', user.id)
+    .gte('created_at', weekStart.toISOString())
+    .lte('created_at', weekEnd.toISOString()),
+  supabase.from('profiles').select('*').eq('id', user.id).single(),  // add this
+])
+
+
 
   const entries = entriesRes.data || []
   const transactions = txnsRes.data || []
@@ -35,7 +39,8 @@ export async function POST(req: NextRequest) {
   }
 
   const { text, metadata } = await generateWeeklyReport(
-    entries, transactions, correlations, weekStart, weekEnd
+    entries, transactions, correlations, weekStart, weekEnd,
+    profileRes.data  
   )
 
   // Upsert report

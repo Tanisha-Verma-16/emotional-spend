@@ -27,8 +27,13 @@ export async function generateWeeklyReport(
   transactions: any[],
   correlations: any[],
   weekStart: Date,
-  weekEnd: Date
+  weekEnd: Date,
+  profile?: any   // add this
 ): Promise<{ text: string; metadata: object }> {
+
+  const profileContext = profile
+    ? `\nUser: ${profile.name || 'unknown'}, ${profile.age || '?'} years old, ${profile.gender || ''}. ${profile.bio || ''}`
+    : ''
 
   // Build context summary for the prompt
   const avgSentiment = entries.length
@@ -61,6 +66,7 @@ export async function generateWeeklyReport(
     .join('\n')
 
   const userContext = `
+${profileContext}
 Week: ${format(weekStart, 'MMM d')} – ${format(weekEnd, 'MMM d, yyyy')}
 Journal entries: ${entries.length}
 Average sentiment: ${avgSentiment.toFixed(2)} (-1 = very negative, 1 = very positive)

@@ -67,3 +67,15 @@ export async function analyzeJournalEntry(text: string): Promise<EmotionalAnalys
     }
   }
 }
+
+// Add this function to lib/mistral/analyze-entry.ts
+
+export function buildProfileContext(profile: any): string {
+  if (!profile) return ''
+  const parts = []
+  if (profile.name) parts.push(`Name: ${profile.name}`)
+  if (profile.age) parts.push(`Age: ${profile.age}`)
+  if (profile.gender) parts.push(`Gender: ${profile.gender}`)
+  if (profile.bio) parts.push(`About them: ${profile.bio}`)
+  return parts.length > 0 ? `\n\nUser profile context:\n${parts.join('\n')}` : ''
+}
